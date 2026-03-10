@@ -1,11 +1,39 @@
-import { type NextRequest } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { updateSession } from '@/lib/supabase/middleware';
+
+// Basic in-memory rate limiting (Note: In a multi-region deployment like Vercel Edge, 
+// this is per-instance. For strict global limiting, use Upstash Redis.)
+const rateLimit = new Map<string, { count: number; reset: number }>();
 
 export async function middleware(request: NextRequest) {
-  // Try to use Supabase if configured, otherwise passthrough (demo mode)
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return await updateSession(request)
+  const isApiRoute = request.nextUrl.pathname.startsWith('/api');
+
+  // 1. Rate Limiting for API routes
+  if (isApiRoute) {
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const now = Date.now();
+    const windowMs = 60 * 1000; // 1 minute
+    const limit = 30; // 30 requests per minute per IP
+
+    const record = rateLimit.get(ip);
+
+    if (!record || now > record.reset) {
+      rateLimit.set(ip, { count: 1, reset: now + windowMs });
+    } else {
+      if (record.count >= limit) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      }
+      record.count++;
+    }
   }
+
+  // 2. Supabase Auth Session update
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return await updateSession(request);
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
@@ -19,4 +47,4 @@ export const config = {
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-}
+};
