@@ -1,0 +1,19 @@
+[package]
+name = "devagent-cert"
+version = "0.1.0"
+description = "DevAgent24 Certificate NFT Program — Issues and verifies developer credentials on Solana"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "devagent_cert"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.1"
