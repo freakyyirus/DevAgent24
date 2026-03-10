@@ -107,38 +107,45 @@ export default function InterviewPage() {
     toast.success('Interview started! Good luck.');
   };
 
-  const addInterviewerResponse = () => {
-    const questions = INTERVIEW_QUESTIONS[interviewType];
-    const nextIdx = questionIndex + 1;
-
-    if (nextIdx >= questions.length) {
-      const closing: Message = {
-        role: 'interviewer',
-        content:
-          "That concludes our interview. Thank you for your responses! You showed strong technical knowledge. I'll compile my feedback for you now.",
-        timestamp: Date.now(),
-      };
-      setMessages((prev) => [...prev, closing]);
-      speak(closing.content);
-      return;
-    }
-
-    setQuestionIndex(nextIdx);
-    const nextQ = questions[nextIdx];
-    const msg: Message = { role: 'interviewer', content: nextQ, timestamp: Date.now() };
-    setMessages((prev) => [...prev, msg]);
-    speak(nextQ);
-  };
-
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!userInput.trim()) return;
 
-    const msg: Message = { role: 'candidate', content: userInput, timestamp: Date.now() };
-    setMessages((prev) => [...prev, msg]);
+    const newCandidateMsg: Message = { role: 'candidate', content: userInput, timestamp: Date.now() };
+    const updatedMessages = [...messages, newCandidateMsg];
+    
+    setMessages(updatedMessages);
     setUserInput('');
 
-    // AI responds after a short delay
-    setTimeout(addInterviewerResponse, 2000);
+    try {
+      const res = await fetch('/api/interview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          interviewType
+        }),
+      });
+
+      const data = await res.json();
+      if (data.reply) {
+        const aiMsg: Message = { role: 'interviewer', content: data.reply, timestamp: Date.now() };
+        setMessages(prev => [...prev, aiMsg]);
+        speak(data.reply);
+      } else if (data.score) {
+        // Handle end of interview mode if needed
+        const endMsg: Message = { role: 'interviewer', content: `Interview concluded. Your approximate score is ${data.score}/100. ${data.feedback}`, timestamp: Date.now() };
+        setMessages(prev => [...prev, endMsg]);
+        speak(endMsg.content);
+        setStarted(false);
+      } else {
+        throw new Error('No reply from AI');
+      }
+    } catch (error) {
+      console.error(error);
+      const fallbackMsg: Message = { role: 'interviewer', content: "I'm having trouble connecting to the network. Could you please repeat that?", timestamp: Date.now() };
+      setMessages(prev => [...prev, fallbackMsg]);
+      speak(fallbackMsg.content);
+    }
   };
 
   const toggleListening = () => {
