@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { onChallengeCompleted } from '@/lib/n8n-client';
 
 // Dynamically load Monaco Editor (client-only)
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
@@ -122,6 +123,16 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
         } else if (phase === 'green' || phase === 'refactor') {
           setPhase('completed');
           toast.success('🎉 Challenge completed!');
+
+          // Trigger n8n orchestration
+          onChallengeCompleted({
+            userId: 'demo-user',
+            challengeId: challenge.id,
+            challengeTitle: challenge.title,
+            language,
+            score: 100,
+            timeSpentMinutes: Math.floor(elapsed / 60)
+          }).catch(() => {});
         }
       } else {
         setOutput(
@@ -179,51 +190,71 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)' }}>
       {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link
             href="/dashboard/challenges"
-            style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+            style={{ 
+              width: 36, 
+              height: 36, 
+              borderRadius: 'var(--radius-sm)', 
+              background: 'rgba(255,255,255,0.05)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: 'var(--color-text-muted)',
+              border: '1px solid var(--color-border)',
+              transition: 'all 0.2s ease',
+            }}
+            className="hover:border-white/20 hover:text-white"
           >
             <ChevronLeft size={20} />
           </Link>
-          <h1 style={{ fontSize: '1.3rem', fontWeight: 700 }}>{challenge.title}</h1>
-          <span className={`badge badge-${challenge.difficulty}`}>{challenge.difficulty}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            <Clock size={14} />
-            {formatTime(elapsed)}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
+              <h1 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em' }}>{challenge.title}</h1>
+              <span className={`badge badge-${challenge.difficulty}`} style={{ fontSize: '10px', padding: '2px 8px' }}>{challenge.difficulty}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Clock size={12} /> {formatTime(elapsed)}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Sparkles size={12} color="var(--color-accent)" /> Elite Series
+              </div>
+            </div>
           </div>
-
-          {/* TDD Phase indicator */}
-          <motion.div
-            key={phase}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 14px',
-              borderRadius: 8,
-              border: `1px solid ${PHASE_CONFIG[phase].color}40`,
-              background: `${PHASE_CONFIG[phase].color}15`,
-              color: PHASE_CONFIG[phase].color,
-              fontWeight: 700,
-              fontSize: '0.8rem',
-            }}
-          >
-            {PHASE_CONFIG[phase].icon}
-            {PHASE_CONFIG[phase].label}
-          </motion.div>
         </div>
+        
+        {/* TDD Phase indicator */}
+        <motion.div
+          key={phase}
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 'var(--radius-md)',
+            border: `1px solid ${PHASE_CONFIG[phase].color}40`,
+            background: `${PHASE_CONFIG[phase].color}10`,
+            color: PHASE_CONFIG[phase].color,
+            fontWeight: 800,
+            fontSize: 'var(--size-xs)',
+            letterSpacing: '0.05em',
+            boxShadow: `0 0 20px -5px ${PHASE_CONFIG[phase].color}20`,
+          }}
+        >
+          {PHASE_CONFIG[phase].icon}
+          {PHASE_CONFIG[phase].label}
+        </motion.div>
       </div>
 
       {/* Main content */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flex: 1, minHeight: 0 }}>
+      <div className="challenge-container">
         {/* Left: Description + Tests */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, overflow: 'auto' }}>
+        <div className="challenge-info">
           {/* Description */}
           <div className="glass-card" style={{ padding: '20px', flex: '0 0 auto' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 10, color: '#818cf8' }}>Description</h3>
@@ -289,7 +320,7 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
         </div>
 
         {/* Right: Editor + Output */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: 0 }}>
+        <div className="challenge-editor">
           {/* Editor Header */}
           <div className="editor-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <div className="editor-header">
@@ -488,6 +519,36 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .challenge-container {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          flex: 1;
+          min-height: 0;
+        }
+        .challenge-info, .challenge-editor {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          min-height: 0;
+        }
+        @media (max-width: 1200px) {
+          .challenge-container {
+            grid-template-columns: 1fr;
+            overflow: auto;
+            height: auto;
+          }
+          .challenge-info {
+            height: auto;
+            overflow: visible;
+          }
+          .challenge-editor {
+            height: 800px;
+          }
+        }
+      `}</style>
     </div>
   );
 }
