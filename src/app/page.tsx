@@ -101,8 +101,34 @@ export default function Home() {
             minHeight: '85vh',
             justifyContent: 'center',
             position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          {/* Blinking Stars Background */}
+          <div className="absolute inset-0 pointer-events-none -z-10">
+            {[...Array(40)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute bg-amber-400 rounded-full"
+                style={{
+                  top: `${(i * 23) % 100}%`,
+                  left: `${(i * 37) % 100}%`,
+                  width: (i % 3) + 1.5,
+                  height: (i % 3) + 1.5,
+                }}
+                animate={{
+                  opacity: [0.1, 0.9, 0.1],
+                  scale: [1, 1.5, 1],
+                }}
+                transition={{
+                  duration: (i % 4) + 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: (i % 5) * 0.4,
+                }}
+              />
+            ))}
+          </div>
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
