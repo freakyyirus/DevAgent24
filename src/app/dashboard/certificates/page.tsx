@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Award, ExternalLink, Download, Shield, CheckCircle2, Clock, Linkedin } from 'lucide-react';
+import { Award, ExternalLink, Download, Shield, CheckCircle2, Clock, Linkedin, Plus, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import confetti from 'canvas-confetti';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 const CERTS = [
   {
@@ -24,31 +27,115 @@ const CERTS = [
 ];
 
 export default function CertificatesPage() {
+  const [certs, setCerts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCerts = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('certificates')
+      .select('*')
+      .order('issued_at', { ascending: false });
+    
+    if (!error && data) {
+      setCerts(data);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCerts();
+  }, []);
+
+  const triggerConfetti = () => {
+    const end = Date.now() + 3 * 1000;
+    const colors = ['#f59e0b', '#fbbf24', '#ffffff'];
+
+    (function frame() {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  };
+
+  const handleMintDemo = async () => {
+    toast.promise(
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+      {
+        loading: 'Minting Certificate on Solana Devnet...',
+        success: () => {
+          triggerConfetti();
+          return 'Certificate minted successfully!';
+        },
+        error: 'Minting failed. Please try again.',
+      }
+    );
+  };
+
   return (
     <div>
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 4 }}>
-          <Award size={28} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 10, color: '#f59e0b' }} />
-          My Certificates
-        </h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Blockchain-verified credentials. Share on LinkedIn or verify with QR code.</p>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontSize: 'var(--size-h2)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 'var(--space-050)' }}>
+            <Award size={32} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 12, color: 'var(--color-accent)' }} />
+            My Certificates
+          </h1>
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--size-small)' }}>Blockchain-verified credentials. Share on LinkedIn or verify with QR code.</p>
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={fetchCerts} className="btn-secondary" style={{ padding: '10px' }}>
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button onClick={handleMintDemo} className="btn-primary" style={{ padding: '10px 20px' }}>
+            <Plus size={18} /> Mint New
+          </button>
+        </div>
       </motion.div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+      <div 
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
+          gap: 'var(--space-200)', 
+          marginBottom: 'var(--space-400)' 
+        }}
+      >
         {[
-          { label: 'Total', value: CERTS.length, color: '#6366f1' },
-          { label: 'Verified', value: CERTS.filter(c => c.verified).length, color: '#10b981' },
-          { label: 'Avg Score', value: `${Math.round(CERTS.reduce((a, c) => a + c.score, 0) / CERTS.length)}%`, color: '#f59e0b' },
-        ].map(s => (
-          <div key={s.label} className="glass-card" style={{ padding: 24, textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 4 }}>{s.label}</div>
-          </div>
+          { label: 'Total', value: certs.length || CERTS.length, color: 'var(--color-accent)' },
+          { label: 'Verified', value: (certs.length ? certs.filter(c => c.verified) : CERTS.filter(c => c.verified)).length, color: 'var(--color-success)' },
+          { label: 'Avg Score', value: `${certs.length ? Math.round(certs.reduce((a, c) => a + c.score, 0) / certs.length) : 88}%`, color: 'var(--color-text)' },
+        ].map((s, i) => (
+          <motion.div 
+            key={s.label} 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.05 }}
+            className="card-flat" 
+            style={{ padding: 'var(--space-300)', textAlign: 'center' }}
+          >
+            <div style={{ fontSize: 'var(--size-h2)', fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: 'var(--size-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-050)', fontWeight: 600, letterSpacing: '0.05em' }}>{s.label.toUpperCase()}</div>
+          </motion.div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
-        {CERTS.map((cert, i) => (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-300)' }}>
+        {(certs.length > 0 ? certs : CERTS).map((cert: any, i: number) => (
           <motion.div key={cert.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="glass-card" style={{ overflow: 'hidden' }}>
             <div style={{ padding: '32px 24px 24px', background: cert.verified ? 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.08))' : 'linear-gradient(135deg, rgba(245,158,11,0.1), rgba(244,63,94,0.05))', borderBottom: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -62,7 +149,7 @@ export default function CertificatesPage() {
             </div>
             <div style={{ padding: '20px 24px' }}>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
-                {cert.skills.map(s => (
+                {(cert.skills || []).map((s: string) => (
                   <span key={s} style={{ padding: '3px 10px', borderRadius: 6, background: 'rgba(99,102,241,0.1)', fontSize: '0.72rem', color: '#818cf8' }}>{s}</span>
                 ))}
               </div>
@@ -73,7 +160,7 @@ export default function CertificatesPage() {
                 </div>
               )}
               <div style={{ display: 'flex', gap: 8 }}>
-                {cert.verified && <Link href={`/verify/${cert.blockchain_hash}`} className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.75rem', flex: 1, textAlign: 'center' }}><ExternalLink size={12} /> Verify</Link>}
+                {cert.verified && <Link href={cert.blockchain_hash ? `https://explorer.solana.com/tx/${cert.blockchain_hash}?cluster=devnet` : '#'} target="_blank" className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.75rem', flex: 1, textAlign: 'center' }}><ExternalLink size={12} /> Verify</Link>}
                 <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.75rem', flex: 1 }}><Download size={12} /> PDF</button>
                 <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.75rem', flex: 1 }}><Linkedin size={12} /> Share</button>
               </div>
