@@ -191,12 +191,13 @@ export default function Home() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            style={{ display: 'flex', gap: 'var(--space-200)', flexWrap: 'wrap', justifyContent: 'center' }}
+            style={{ display: 'flex', gap: 'var(--space-200)', flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}
+            className="px-4 sm:px-0"
           >
-            <form action={signInWithGithub}>
+            <form action={signInWithGithub} className="w-full sm:w-auto">
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary w-full sm:w-auto justify-center"
                 style={{ padding: 'var(--space-200) var(--space-400)', fontSize: 'var(--size-base)', display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}
               >
                 <Github size={20} />
@@ -204,10 +205,10 @@ export default function Home() {
                 <ChevronRight size={18} />
               </button>
             </form>
-            <Link href="#features" style={{ textDecoration: 'none' }}>
+            <Link href="#features" style={{ textDecoration: 'none' }} className="w-full sm:w-auto">
               <button
-                className="btn btn-secondary"
-                style={{ padding: 'var(--space-200) var(--space-400)', fontSize: 'var(--size-base)' }}
+                className="btn btn-secondary w-full sm:w-auto justify-center"
+                style={{ padding: 'var(--space-200) var(--space-400)', fontSize: 'var(--size-base)', display: 'flex' }}
               >
                 Explore Features
               </button>
@@ -254,12 +255,12 @@ export default function Home() {
         </section>
 
         {/* Trusted By Strip */}
-        <section style={{ borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: 'var(--space-300) 0', background: 'var(--color-bg-elevated)', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 'calc(var(--space-800) + var(--space-400))', opacity: 0.5, filter: 'grayscale(100%)' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 8 }}><Award size={20} /> Supabase</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 8 }}><Zap size={20} /> Groq</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 8 }}><Globe size={20} /> Solana</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 8 }}><Cpu size={20} /> Vercel</span>
+        <section style={{ borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: 'var(--space-300) var(--space-200)', background: 'var(--color-bg-elevated)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--space-400)', opacity: 0.5, filter: 'grayscale(100%)' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'clamp(1rem, 2vw, 1.2rem)', display: 'flex', alignItems: 'center', gap: 8 }}><Award size={20} /> Supabase</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'clamp(1rem, 2vw, 1.2rem)', display: 'flex', alignItems: 'center', gap: 8 }}><Zap size={20} /> Groq</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'clamp(1rem, 2vw, 1.2rem)', display: 'flex', alignItems: 'center', gap: 8 }}><Globe size={20} /> Solana</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 'clamp(1rem, 2vw, 1.2rem)', display: 'flex', alignItems: 'center', gap: 8 }}><Cpu size={20} /> Vercel</span>
           </div>
         </section>
 
@@ -279,7 +280,7 @@ export default function Home() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-100px' }}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-300)' }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'var(--space-300)' }}
           >
             {[
               { title: 'TDD Engine', desc: 'Real Pyodide & Judge0 mult-language execution. Enforces strict Red-Green-Refactor workflows.', icon: Terminal },
@@ -308,7 +309,7 @@ export default function Home() {
               <p style={{ color: 'var(--color-text-secondary)', maxWidth: 600, margin: '0 auto' }}>Invest in your career. Upkill faster with dedicated AI resources.</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-300)', alignItems: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 'var(--space-300)', alignItems: 'stretch' }}>
               {/* Free Plan */}
               <div className="card" style={{ padding: 'var(--space-500)', border: '1px solid var(--color-border)' }}>
                 <div style={{ fontSize: 'var(--size-large)', fontWeight: 700, marginBottom: 'var(--space-100)' }}>Community</div>
@@ -374,7 +375,7 @@ export default function Home() {
               Wall of <span style={{ color: 'var(--color-accent)' }}>Love</span>
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-300)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'var(--space-300)' }}>
             {[
               { text: "The TDD environment completely changed how I think about algorithms. I passed my FAANG loop easily.", author: "Sarah J.", role: "Senior Engineer" },
               { text: "Voice interviews with Llama-3 feel incredibly real. The follow-up questions exposed gaps I didn't know I had.", author: "Michael T.", role: "Full Stack Dev" },
@@ -421,8 +422,8 @@ export default function Home() {
             Ready to become a <span style={{ color: 'var(--color-accent)' }}>10x Engineer?</span>
           </h2>
           <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-400)', maxWidth: 600, margin: '0 auto var(--space-400) auto' }}>Join thousands of developers leveling up their skills and securing offers from top-tier companies.</p>
-          <form action={signInWithGithub}>
-            <button type="submit" className="btn btn-primary" style={{ padding: 'var(--space-200) var(--space-600)', fontSize: '1.2rem', display: 'flex', gap: 'var(--space-100)', alignItems: 'center', margin: '0 auto' }}>
+          <form action={signInWithGithub} className="w-full sm:w-auto px-4 sm:px-0">
+            <button type="submit" className="btn btn-primary w-full sm:w-auto" style={{ padding: 'var(--space-200) var(--space-600)', fontSize: '1.2rem', display: 'flex', gap: 'var(--space-100)', alignItems: 'center', margin: '0 auto', justifyContent: 'center' }}>
               <Github size={20} /> Deploy Your Career
             </button>
           </form>
