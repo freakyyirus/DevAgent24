@@ -89,70 +89,55 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
     setRunning(true);
     setOutput('');
 
-    // Simulate code execution (in production this hits the API route)
-    await new Promise((r) => setTimeout(r, 1500));
+    try {
+      const testCode = challenge.initial_tests[language] || '';
+      
+      const res = await fetch('/api/execute-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          language,
+          tests: testCode,
+          challengeId: challenge.id,
+        }),
+      });
 
-    const testCode = challenge.initial_tests[language] || '';
-    const hasReturn = code.includes('return') || code.includes('=>');
-    const isStub =
-      code.includes('pass') ||
-      code.includes('return []') ||
-      code.includes('return -1') ||
-      code.includes('return 0;') ||
-      code.includes('return nil') ||
-      code.includes('return {};') ||
-      code.includes('return false') ||
-      code.includes('return "";') ||
-      code.includes('return None');
+      const data = await res.json();
+      
+      // Some simple parsing to show the output clearly
+      const cleanOutput = (data.output || '').replace(/\\n/g, '\n');
 
-    if (isStub && !hasReturn) {
-      // Still a stub — tests should fail
-      setOutput(
-        `❌ Tests Failed (0/5 passed)\n\n` +
-        `  ✗ Test 1: Expected a return value, got None\n` +
-        `  ✗ Test 2: Function not implemented\n` +
-        `  ✗ Test 3: No implementation detected\n` +
-        `  ✗ Test 4: Stub code detected\n` +
-        `  ✗ Test 5: Please implement the solution\n\n` +
-        `Phase: RED — Write code to make the tests pass!`
-      );
-      setPhase('red');
-    } else if (hasReturn && !isStub) {
-      // User wrote something — simulate passing tests
-      setOutput(
-        `✅ All Tests Passed (5/5)\n\n` +
-        `  ✓ Test 1: Basic case\n` +
-        `  ✓ Test 2: Edge case\n` +
-        `  ✓ Test 3: Large input\n` +
-        `  ✓ Test 4: Boundary values\n` +
-        `  ✓ Test 5: Special characters\n\n` +
-        `Execution time: ${Math.floor(Math.random() * 200) + 50}ms\n` +
-        `Memory: ${Math.floor(Math.random() * 5000) + 1000}KB`
-      );
+      if (data.status === 'success') {
+        setOutput(
+          `✅ All Tests Passed (${data.tests_passed}/${data.tests_total})\n\n` +
+          `Execution time: ${data.execution_time_ms}ms\n` +
+          `Memory: ${data.memory_kb}KB\n\n` +
+          `Output:\n${cleanOutput}`
+        );
 
-      if (phase === 'red') {
-        setPhase('green');
-        toast.success('Tests passing! Move to REFACTOR phase.');
-      } else if (phase === 'green' || phase === 'refactor') {
-        setPhase('completed');
-        toast.success('🎉 Challenge completed!');
+        if (phase === 'red') {
+          setPhase('green');
+          toast.success('Tests passing! Move to REFACTOR phase.');
+        } else if (phase === 'green' || phase === 'refactor') {
+          setPhase('completed');
+          toast.success('🎉 Challenge completed!');
+        }
+      } else {
+        setOutput(
+          `❌ Tests Failed (${data.tests_passed}/${data.tests_total} passed)\n\n` +
+          `Output:\n${cleanOutput}\n\n` + 
+          (data.error ? `Error: ${data.error}` : '')
+        );
+        setPhase('red');
       }
-    } else {
-      // Partial implementation
-      const passed = Math.floor(Math.random() * 3) + 1;
-      setOutput(
-        `⚠️ Partial Pass (${passed}/5)\n\n` +
-        `  ✓ Test 1: Basic case\n` +
-        (passed >= 2 ? `  ✓ Test 2: Edge case\n` : `  ✗ Test 2: Expected correct output\n`) +
-        (passed >= 3 ? `  ✓ Test 3: Large input\n` : `  ✗ Test 3: Time limit exceeded\n`) +
-        `  ✗ Test 4: Boundary case failed\n` +
-        `  ✗ Test 5: Special case not handled\n\n` +
-        `Keep going! Fix the failing tests.`
-      );
-      setPhase('red');
-    }
 
-    setRunning(false);
+    } catch (e: any) {
+      setOutput(`❌ Execution failed.\\nNetwork or server error: ${e.message}`);
+      toast.error('Failed to execute code.');
+    } finally {
+      setRunning(false);
+    }
   };
 
   const askMentor = async () => {
