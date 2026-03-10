@@ -14,7 +14,12 @@ export async function middleware(request: NextRequest) {
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const now = Date.now();
     const windowMs = 60 * 1000; // 1 minute
-    const limit = 30; // 30 requests per minute per IP
+    
+    // Granular limits based on route
+    let limit = 20; // Default
+    if (request.nextUrl.pathname.includes('/api/execute-code')) limit = 10;
+    if (request.nextUrl.pathname.includes('/api/interview')) limit = 15;
+    if (request.nextUrl.pathname.includes('/api/travel')) limit = 5;
 
     const record = rateLimit.get(ip);
 
@@ -22,7 +27,10 @@ export async function middleware(request: NextRequest) {
       rateLimit.set(ip, { count: 1, reset: now + windowMs });
     } else {
       if (record.count >= limit) {
-        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+        return NextResponse.json(
+          { error: 'Rate limit exceeded. Try again in a minute.', limit, current: record.count }, 
+          { status: 429 }
+        );
       }
       record.count++;
     }
