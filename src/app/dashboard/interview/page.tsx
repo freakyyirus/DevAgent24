@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import {
   Mic,
   MicOff,
@@ -13,8 +14,10 @@ import {
   Clock,
   BarChart3,
   AlertCircle,
+  Trophy,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { onInterviewDone } from '@/lib/n8n-client';
 
 interface Message {
   role: 'interviewer' | 'candidate';
@@ -109,6 +112,29 @@ export default function InterviewPage() {
 
   const [report, setReport] = useState<{ score: number; feedback: string; strengths?: string[]; weaknesses?: string[] } | null>(null);
 
+  // Trigger confetti when report is generated
+  useEffect(() => {
+    if (report && report.score >= 70) {
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval: any = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      }, 250);
+    }
+  }, [report]);
+
   const handleSend = async () => {
     if (!userInput.trim()) return;
 
@@ -139,6 +165,14 @@ export default function InterviewPage() {
         setStarted(false);
         speak("The interview has concluded. I've generated your performance report. Great job.");
         toast.success('Interview concluded! Review your report below.');
+
+        // Trigger n8n orchestration
+        onInterviewDone({
+          userId: 'demo-user', // Use real ID if available
+          interviewType,
+          questionsAnswered: messages.length,
+          averageScore: data.score
+        }).catch(() => {});
       } else {
         throw new Error('Unexpected response format');
       }
@@ -222,7 +256,14 @@ export default function InterviewPage() {
             "{report.feedback}"
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 40 }}>
+          <div 
+            style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+              gap: 24, 
+              marginBottom: 40 
+            }}
+          >
             <div>
               <h4 style={{ color: '#10b981', fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Send size={16} /> Strengths
@@ -358,7 +399,7 @@ export default function InterviewPage() {
             >
               <div
                 style={{
-                  maxWidth: '70%',
+                  maxWidth: '85%',
                   padding: '14px 18px',
                   borderRadius: 14,
                   borderBottomLeftRadius: msg.role === 'interviewer' ? 4 : 14,
