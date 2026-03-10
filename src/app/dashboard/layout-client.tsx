@@ -165,18 +165,55 @@ export default function DashboardLayoutClient({ children, userProfile }: { child
       <main
         style={{
           flex: 1,
+          width: '100%',
           marginLeft: 260,
           padding: 'var(--space-400)',
-          maxWidth: 1200,
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {children}
+        <div style={{ maxWidth: 1200, width: '100%', margin: '0 auto' }}>
+          {children}
+        </div>
       </main>
 
       <style>{`
-        @media (max-width: 768px) {
-          .mobile-menu-btn { display: block !important; }
-          main { margin-left: 0 !important; padding: var(--space-200) !important; padding-top: 60px !important; }
+        .sidebar {
+          width: 260px;
+          height: 100vh;
+          position: fixed;
+          left: 0;
+          top: 0;
+          background: var(--color-bg-elevated);
+          border-right: 1px solid var(--color-border);
+          display: flex;
+          flex-direction: column;
+          z-index: 100;
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (max-width: 1024px) {
+          .sidebar { transform: translateX(-100%); }
+          .sidebar.open { transform: translateX(0); }
+          main { margin-left: 0 !important; padding: var(--space-300) !important; padding-top: 80px !important; }
+          .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; }
+        }
+
+        .mobile-menu-btn {
+          position: fixed;
+          top: var(--space-200);
+          left: var(--space-200);
+          z-index: 110;
+          display: none;
+          background: var(--color-bg-card);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-sm);
+          padding: var(--space-100);
+          color: var(--color-text);
+          cursor: pointer;
+          backdrop-filter: blur(10px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
       `}</style>
     </div>
