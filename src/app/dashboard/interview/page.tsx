@@ -107,6 +107,8 @@ export default function InterviewPage() {
     toast.success('Interview started! Good luck.');
   };
 
+  const [report, setReport] = useState<{ score: number; feedback: string; strengths?: string[]; weaknesses?: string[] } | null>(null);
+
   const handleSend = async () => {
     if (!userInput.trim()) return;
 
@@ -122,7 +124,7 @@ export default function InterviewPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           history: updatedMessages.map(m => ({ role: m.role, content: m.content })),
-          interviewType
+          type: interviewType
         }),
       });
 
@@ -131,14 +133,14 @@ export default function InterviewPage() {
         const aiMsg: Message = { role: 'interviewer', content: data.reply, timestamp: Date.now() };
         setMessages(prev => [...prev, aiMsg]);
         speak(data.reply);
-      } else if (data.score) {
-        // Handle end of interview mode if needed
-        const endMsg: Message = { role: 'interviewer', content: `Interview concluded. Your approximate score is ${data.score}/100. ${data.feedback}`, timestamp: Date.now() };
-        setMessages(prev => [...prev, endMsg]);
-        speak(endMsg.content);
+      } else if (data.score !== undefined) {
+        // Handle end of interview mode
+        setReport(data);
         setStarted(false);
+        speak("The interview has concluded. I've generated your performance report. Great job.");
+        toast.success('Interview concluded! Review your report below.');
       } else {
-        throw new Error('No reply from AI');
+        throw new Error('Unexpected response format');
       }
     } catch (error) {
       console.error(error);
@@ -202,8 +204,59 @@ export default function InterviewPage() {
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
-  // ─── Pre-interview screen ───
+  // ─── Pre-interview / Report screen ───
   if (!started) {
+    if (report) {
+      return (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ padding: '40px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ fontSize: '3rem', fontWeight: 800, color: report.score >= 80 ? '#10b981' : '#f59e0b', marginBottom: 8 }}>
+              {report.score}%
+            </div>
+            <p style={{ color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              Final Interview Score
+            </p>
+          </div>
+
+          <p style={{ fontSize: '1.1rem', lineHeight: 1.7, marginBottom: 32, fontStyle: 'italic', color: 'var(--text-primary)' }}>
+            "{report.feedback}"
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 40 }}>
+            <div>
+              <h4 style={{ color: '#10b981', fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Send size={16} /> Strengths
+              </h4>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                {report.strengths?.map((s, i) => (
+                  <li key={i} style={{ fontSize: '0.9rem', marginBottom: 8, color: 'var(--text-secondary)' }}>• {s}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 style={{ color: '#f43f5e', fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertCircle size={16} /> Areas to Improve
+              </h4>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                {report.weaknesses?.map((w, i) => (
+                  <li key={i} style={{ fontSize: '0.9rem', marginBottom: 8, color: 'var(--text-secondary)' }}>• {w}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 16 }}>
+            <button onClick={() => setReport(null)} className="btn-primary" style={{ flex: 1 }}>
+              Start New Practice
+            </button>
+            <button onClick={() => window.location.href = '/dashboard'} className="btn-secondary" style={{ flex: 1 }}>
+              Back to Dashboard
+            </button>
+          </div>
+        </motion.div>
+      );
+    }
+
     return (
       <div>
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>

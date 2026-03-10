@@ -25,78 +25,104 @@ const DEMO_RESPONSES: Record<string, string[]> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, history, type } = await req.json();
+    const { history, type } = await req.json();
 
-    if (!message) {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    if (!history || !history.length) {
+      return NextResponse.json({ error: 'Message history is required' }, { status: 400 });
     }
 
+    const lastMessage = history[history.length - 1];
+    const userMessage = lastMessage.content;
     const interviewType = type || 'technical';
     const hasGroqKey = !!process.env.GROQ_API_KEY;
 
+    // Check if the interview should end (e.g. after 6-8 questions or if user asks for results)
+    const questionCount = history.filter((m: any) => m.role === 'interviewer').length;
+    const isReadyToEnd = questionCount >= 6 || userMessage.toLowerCase().includes('end interview') || userMessage.toLowerCase().includes('results');
+
     if (hasGroqKey) {
-      // ── REAL AI MODE: Use Groq with interviewer agent ──
-      const systemPrompt = `${AGENT_PROMPTS.interviewer}
+      // ── REAL AI MODE ──
+      
+      if (isReadyToEnd) {
+        // Generate final score and feedback report
+        const reportPrompt = `You are a Senior Staff Engineer. You just finished conducting a ${interviewType} interview.
+Review the following transcript and provide:
+1. A numerical score out of 100 based on technical accuracy, communication, and depth.
+2. 3 specific strengths.
+3. 3 areas for improvement.
+4. A brief wrap-up message.
 
-Interview type: ${interviewType}
-Guidelines for this ${interviewType} interview:
-${interviewType === 'technical' ? '- Focus on data structures, algorithms, system design, coding concepts\n- Ask follow-up questions about time/space complexity\n- Challenge assumptions and probe edge cases' : ''}
-${interviewType === 'behavioral' ? '- Use STAR method (Situation, Task, Action, Result)\n- Ask about specific examples and measurable outcomes\n- Probe leadership, teamwork, and conflict resolution' : ''}
-${interviewType === 'system_design' ? '- Start high-level, then drill into components\n- Ask about trade-offs, scalability, consistency\n- Cover database design, caching, load balancing' : ''}
+FORMAT: Respond ONLY with a JSON object like this:
+{ "score": number, "feedback": "string", "strengths": ["string"], "weaknesses": ["string"] }`;
 
-Keep responses concise (2-4 sentences). Be conversational but challenging.`;
-
-      // Build message history for context
-      const messages = (history || [])
-        .slice(-10) // Keep last 10 messages for context window
-        .map((msg: { role: string; content: string }) => ({
+        const messages = history.map((msg: any) => ({
           role: msg.role === 'interviewer' ? 'assistant' as const : 'user' as const,
           content: msg.content,
         }));
 
-      // Add current message
-      messages.push({ role: 'user' as const, content: message });
+        const reportResponse = await chat(reportPrompt, messages, {
+          temperature: 0.3,
+          model: 'llama-3.1-70b-versatile',
+        });
 
-      const response = await chat(systemPrompt, messages, {
-        temperature: 0.8,
-        maxTokens: 300,
+        try {
+          const report = JSON.parse(reportResponse);
+          return NextResponse.json(report);
+        } catch (e) {
+          // Fallback if AI doesn't return clean JSON
+          return NextResponse.json({
+            score: 75,
+            feedback: "Interview concluded. You demonstrated a solid understanding of core concepts, though some edge cases could be handled with more precision.",
+            mode: 'ai_fallback'
+          });
+        }
+      }
+
+      const systemPrompt = `${AGENT_PROMPTS.interviewer}
+Interview type: ${interviewType}
+Current Question Count: ${questionCount}/6
+
+Guidelines:
+${interviewType === 'technical' ? '- Focus on data structures, algorithms, system design\n- Ask follow-up questions about time/space complexity' : ''}
+${interviewType === 'behavioral' ? '- Use STAR method\n- Probe leadership and conflict resolution' : ''}
+${interviewType === 'system_design' ? '- Start high-level, then drill into components' : ''}
+
+Keep responses concise (1-3 sentences). Ask the next question. If the user finished answering, move to a new relevant topic.`;
+
+      const messages = history.slice(-8).map((msg: any) => ({
+        role: msg.role === 'interviewer' ? 'assistant' as const : 'user' as const,
+        content: msg.content,
+      }));
+
+      const reply = await chat(systemPrompt, messages, {
+        temperature: 0.7,
+        maxTokens: 250,
         model: 'llama-3.1-70b-versatile',
       });
 
-      // Simple scoring based on response length and keywords
-      const wordCount = message.split(' ').length;
-      const hasExamples = /example|instance|case|scenario/i.test(message);
-      const hasTechnicalTerms = /complexity|algorithm|data structure|cache|database|api|scale|distributed/i.test(message);
-      const baseScore = 65;
-      const lengthBonus = Math.min(wordCount / 10, 10);
-      const exampleBonus = hasExamples ? 5 : 0;
-      const technicalBonus = hasTechnicalTerms ? 8 : 0;
-      const score = Math.min(98, Math.round(baseScore + lengthBonus + exampleBonus + technicalBonus));
-
-      return NextResponse.json({
-        response,
-        score,
-        mode: 'ai',
-      });
+      return NextResponse.json({ reply, mode: 'ai' });
     } else {
-      // ── DEMO MODE: Return contextual responses ──
-      const pool = DEMO_RESPONSES[interviewType] || DEMO_RESPONSES.technical;
-      const response = pool[Math.floor(Math.random() * pool.length)];
+      // ── DEMO MODE ──
+      if (isReadyToEnd) {
+        return NextResponse.json({
+          score: 82,
+          feedback: "Great work! You handled the technical questions well. Focus more on articulating your thought process for distributed systems.",
+          strengths: ["Clean logic", "Good complexity analysis"],
+          weaknesses: ["Communication speed"],
+          mode: 'demo'
+        });
+      }
 
-      return NextResponse.json({
-        response,
-        score: Math.floor(Math.random() * 20) + 70,
-        mode: 'demo',
-      });
+      const pool = DEMO_RESPONSES[interviewType] || DEMO_RESPONSES.technical;
+      const reply = pool[Math.floor(Math.random() * pool.length)];
+
+      return NextResponse.json({ reply, mode: 'demo' });
     }
   } catch (error) {
     console.error('Interview API error:', error);
-    // Fallback to demo on any error
-    const pool = DEMO_RESPONSES.technical;
     return NextResponse.json({
-      response: pool[Math.floor(Math.random() * pool.length)],
-      score: 75,
-      mode: 'demo',
+      reply: "I'm experiencing a temporary glitch in our link. Let's continue — can you repeat your last point?",
+      mode: 'error'
     });
   }
 }
