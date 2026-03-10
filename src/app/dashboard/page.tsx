@@ -13,6 +13,24 @@ import {
   CheckCircle,
   Star,
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+
+const chartData = [
+  { name: 'Week 1', elo: 1200 },
+  { name: 'Week 2', elo: 1250 },
+  { name: 'Week 3', elo: 1320 },
+  { name: 'Week 4', elo: 1390 },
+  { name: 'Week 5', elo: 1480 },
+  { name: 'Now', elo: 1550 },
+];
 
 const stats = [
   { label: 'Challenges Completed', value: '3', icon: Trophy, change: '+2 this week' },
@@ -102,6 +120,62 @@ export default function DashboardPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* Analytics Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="card-flat"
+        style={{ padding: 'var(--space-400)', marginBottom: 'var(--space-400)', height: 360 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', marginBottom: 'var(--space-300)' }}>
+          <TrendingUp size={18} color="var(--color-accent)" />
+          <h3 style={{ fontSize: 'var(--size-h4)', fontWeight: 700 }}>Elo Rating Progression</h3>
+        </div>
+        <div style={{ width: '100%', height: '100%', minHeight: 250 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis 
+                dataKey="name" 
+                stroke="rgba(255,255,255,0.3)" 
+                fontSize={12} 
+                tickLine={false} 
+                axisLine={false} 
+                dy={10}
+              />
+              <YAxis 
+                stroke="rgba(255,255,255,0.3)" 
+                fontSize={12} 
+                tickLine={false} 
+                axisLine={false} 
+                domain={['dataMin - 100', 'dataMax + 100']}
+                dx={-10}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(20, 20, 20, 0.9)', 
+                  borderColor: 'rgba(212, 168, 67, 0.3)',
+                  borderRadius: '12px',
+                  color: '#fff',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+                }}
+                itemStyle={{ color: 'var(--color-accent)', fontWeight: 600 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="elo" 
+                stroke="var(--color-accent)" 
+                strokeWidth={3} 
+                dot={{ r: 4, fill: 'var(--color-bg)', stroke: 'var(--color-accent)', strokeWidth: 2 }} 
+                activeDot={{ r: 6, fill: 'var(--color-accent)', stroke: '#fff', strokeWidth: 2 }}
+                animationDuration={1500}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-200)' }}>
         {/* Skill Matrix */}
