@@ -2,17 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import {
   LayoutDashboard,
   Code,
   Mic,
-  Award,
   Plane,
-  Zap,
+  Award,
   Menu,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -22,144 +21,138 @@ const NAV_ITEMS = [
   { href: '/dashboard/certificates', label: 'Certificates', icon: Award },
 ];
 
+/* Star SVG */
+function StarIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <path d="M16 0L17.5 14.5L32 16L17.5 17.5L16 32L14.5 17.5L0 16L14.5 14.5L16 0Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Mobile menu toggle */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        style={{
-          position: 'fixed',
-          top: 16,
-          left: 16,
-          zIndex: 60,
-          width: 40,
-          height: 40,
-          borderRadius: 10,
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-subtle)',
-          display: 'none',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'var(--text-primary)',
-        }}
-        className="mobile-menu-btn"
-      >
-        {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside
+        className={`sidebar ${mobileOpen ? 'open' : ''}`}
+        style={{ background: 'var(--color-bg-elevated)' }}
+      >
         {/* Logo */}
         <div
           style={{
-            padding: '24px 20px',
+            padding: 'var(--space-300) var(--space-200)',
+            borderBottom: '1px solid var(--color-border)',
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
-            borderBottom: '1px solid var(--border-subtle)',
+            gap: 'var(--space-100)',
           }}
         >
-          <div
+          <div style={{ color: 'var(--color-accent)' }}>
+            <StarIcon size={18} />
+          </div>
+          <span
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 800,
+              fontSize: '1.05rem',
             }}
           >
-            <Zap size={20} color="white" />
-          </div>
-          <span style={{ fontWeight: 800, fontSize: '1.1rem' }}>
-            DevAgent<span style={{ color: '#6366f1' }}>2.0</span>
+            DevAgent<span style={{ color: 'var(--color-accent)' }}>24</span>
           </span>
         </div>
 
-        {/* Navigation */}
-        <nav style={{ flex: 1, padding: '16px 0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Nav */}
+        <nav style={{ padding: 'var(--space-200) 0', flex: 1 }}>
           {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.href === '/dashboard'
-                ? pathname === '/dashboard'
-                : pathname.startsWith(item.href);
-
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`sidebar-link ${isActive ? 'active' : ''}`}
-                onClick={() => setSidebarOpen(false)}
+                onClick={() => setMobileOpen(false)}
               >
-                <item.icon size={20} />
+                <item.icon size={18} />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* Bottom section */}
+        {/* Profile */}
         <div
           style={{
-            padding: '16px 20px',
-            borderTop: '1px solid var(--border-subtle)',
+            padding: 'var(--space-200)',
+            borderTop: '1px solid var(--color-border)',
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            gap: 'var(--space-150)',
           }}
         >
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              width: 32,
+              height: 32,
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(212, 168, 67, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
-              fontSize: '0.85rem',
+              fontSize: 'var(--size-xs)',
+              color: 'var(--color-accent)',
             }}
           >
-            D
+            DA
           </div>
           <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Developer</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pro Plan</div>
+            <div style={{ fontSize: 'var(--size-small)', fontWeight: 600 }}>Developer</div>
+            <div style={{ fontSize: 'var(--size-xs)', color: 'var(--color-text-muted)' }}>Free Plan</div>
           </div>
         </div>
       </aside>
 
-      {/* Main area */}
+      {/* Mobile toggle */}
+      <button
+        onClick={() => setMobileOpen((o) => !o)}
+        style={{
+          position: 'fixed',
+          top: 'var(--space-200)',
+          left: 'var(--space-200)',
+          zIndex: 50,
+          display: 'none',
+          background: 'var(--color-bg-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-sm)',
+          padding: 'var(--space-100)',
+          color: 'var(--color-text)',
+          cursor: 'pointer',
+        }}
+        className="mobile-menu-btn"
+      >
+        {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+      </button>
+
+      {/* Main content */}
       <main
         style={{
           flex: 1,
           marginLeft: 260,
-          padding: '32px',
-          minHeight: '100vh',
-          position: 'relative',
-          zIndex: 1,
+          padding: 'var(--space-400)',
+          maxWidth: 1200,
         }}
       >
         {children}
       </main>
 
-      <style jsx>{`
+      <style>{`
         @media (max-width: 768px) {
-          .mobile-menu-btn {
-            display: flex !important;
-          }
-          main {
-            margin-left: 0 !important;
-            padding: 72px 16px 16px !important;
-          }
+          .mobile-menu-btn { display: block !important; }
+          main { margin-left: 0 !important; padding: var(--space-200) !important; padding-top: 60px !important; }
         }
       `}</style>
     </div>
