@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "DevAgent24 — Enterprise Agentic AI Platform",
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body>
         <div className="particles-bg" aria-hidden="true" />
         {children}
+        <Analytics />
         <Toaster
           position="bottom-right"
           theme="dark"
