@@ -16,6 +16,8 @@ import {
   Loader2,
   Terminal,
   ArrowRight,
+  Bot,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -40,8 +42,24 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
   const [running, setRunning] = useState(false);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [showHint, setShowHint] = useState(false);
+  const [showMentor, setShowMentor] = useState(false);
+  const [mentorHint, setMentorHint] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const [startTime] = useState(Date.now());
   const [elapsed, setElapsed] = useState(0);
+
+  // Keyboard shortcut listener for Ctrl+M (or Cmd+M)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        askMentor();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [code, language]); // Re-bind when code changes so askMentor has fresh state
 
   useEffect(() => {
     if (challenge) {
@@ -135,6 +153,37 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
     }
 
     setRunning(false);
+  };
+
+  const askMentor = async () => {
+    if (!code.trim()) {
+      toast.error('Write some code first before asking the mentor!');
+      return;
+    }
+    
+    setIsThinking(true);
+    setShowMentor(true);
+    setMentorHint('');
+
+    try {
+      const res = await fetch('/api/mentor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language }),
+      });
+      
+      const data = await res.json();
+      if (data.hint) {
+        setMentorHint(data.hint);
+        toast.success('💬 Mentor analyzed your code!');
+      } else {
+        toast.error('Mentor unavailable right now.');
+      }
+    } catch (e) {
+      toast.error('Failed to connect to Mentor.');
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   const formatTime = (s: number) => {
@@ -297,6 +346,15 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
                   <Lightbulb size={14} /> Hint
                 </button>
                 <button
+                  onClick={askMentor}
+                  className="btn-secondary"
+                  style={{ padding: '4px 12px', fontSize: '0.75rem', borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
+                  disabled={isThinking}
+                  title="Keyboard shortcut: Ctrl+M"
+                >
+                  <Bot size={14} /> {isThinking ? 'Analyzing...' : 'Ask AI Mentor'}
+                </button>
+                <button
                   onClick={handleRun}
                   className="btn-primary"
                   style={{ padding: '4px 16px', fontSize: '0.8rem' }}
@@ -327,6 +385,46 @@ export default function ChallengeDetailPage({ params }: { params: Promise<{ id: 
                   automaticLayout: true,
                 }}
               />
+              
+              {/* Floating AI Mentor Widget */}
+              {showMentor && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  style={{
+                    position: 'absolute',
+                    bottom: 24,
+                    right: 24,
+                    width: 320,
+                    background: 'rgba(20, 20, 20, 0.95)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(212, 168, 67, 0.3)',
+                    borderRadius: 'var(--radius-lg)',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
+                    padding: 'var(--space-200)',
+                    zIndex: 50,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-100)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--size-xs)' }}>
+                      <Sparkles size={14} /> Live AI Mentor
+                    </div>
+                    <button onClick={() => setShowMentor(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
+                      <XCircle size={14} />
+                    </button>
+                  </div>
+                  
+                  {isThinking ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-text-secondary)', fontSize: 'var(--size-small)', padding: 'var(--space-100) 0' }}>
+                      <Loader2 size={14} className="animate-spin" /> Analyzing your implementation...
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--color-text)', fontSize: '0.85rem', lineHeight: 1.5 }}>
+                      {mentorHint}
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </div>
           </div>
 
