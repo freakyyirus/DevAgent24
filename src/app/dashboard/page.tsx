@@ -177,7 +177,14 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-200)' }}>
+      <div 
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+          gap: 'var(--space-200)',
+          marginBottom: 'var(--space-400)'
+        }}
+      >
         {/* Skill Matrix */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -232,24 +239,26 @@ export default function DashboardPage() {
             <Clock size={16} color="var(--color-accent)" />
             <h3 style={{ fontSize: 'var(--size-h4)', fontWeight: 700 }}>Recent Activity</h3>
           </div>
-          {recentActivity.map((a, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-150)',
-                padding: 'var(--space-150) 0',
-                borderBottom: i < recentActivity.length - 1 ? '1px solid var(--color-border)' : 'none',
-              }}
-            >
-              <CheckCircle size={14} color="var(--color-success)" style={{ flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 'var(--size-small)', fontWeight: 500 }}>{a.action}</div>
-                <div style={{ fontSize: 'var(--size-xs)', color: 'var(--color-text-muted)' }}>{a.time}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+            {recentActivity.map((a, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-150)',
+                  padding: 'var(--space-100) 0',
+                  borderBottom: i < recentActivity.length - 1 ? '1px solid var(--color-border)' : 'none',
+                }}
+              >
+                <CheckCircle size={14} color="var(--color-success)" style={{ flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 'var(--size-small)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.action}</div>
+                  <div style={{ fontSize: 'var(--size-xs)', color: 'var(--color-text-muted)' }}>{a.time}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </motion.div>
       </div>
 
