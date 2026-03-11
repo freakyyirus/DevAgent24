@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, CheckCircle2, XCircle, ExternalLink, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -8,6 +8,10 @@ import Link from 'next/link';
 export default function VerifyPage({ params }: { params: Promise<{ hash: string }> }) {
   const { hash } = use(params);
   const isValid = hash && hash.startsWith('0x') && hash.length > 10;
+    const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative', zIndex: 1 }}>
@@ -36,7 +40,7 @@ export default function VerifyPage({ params }: { params: Promise<{ hash: string 
             <div style={{ display: 'grid', gap: 12, fontSize: '0.85rem' }}>
               <div><span style={{ color: 'var(--text-muted)' }}>Hash:</span> <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#34d399', fontSize: '0.8rem' }}>{hash}</span></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Network:</span> <span>Polygon PoS</span></div>
-              <div><span style={{ color: 'var(--text-muted)' }}>Issued:</span> <span>{new Date().toLocaleDateString()}</span></div>
+              <div><span style={{ color: 'var(--text-muted)' }}>Issued:</span> <span>{mounted ? new Date().toLocaleDateString() : ''}</span></div>
               <div><span style={{ color: 'var(--text-muted)' }}>Status:</span> <span style={{ color: '#10b981', fontWeight: 600 }}>Active</span></div>
             </div>
           </div>
