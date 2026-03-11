@@ -8,7 +8,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   
   // We use a Server Component wrapper to fetch the auth state, 
   // then pass it down to the Client Component layout
-  let profile = {
+  const profile = {
     full_name: user?.user_metadata?.full_name || 'Demo User',
     avatar_url: user?.user_metadata?.avatar_url || '',
     email: user?.email || 'demo@example.com'
