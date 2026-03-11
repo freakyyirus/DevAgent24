@@ -45,26 +45,6 @@ const fadeUpVariant: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
 };
 
-/* ─── layout constants (single source of truth) ─── */
-const CONTAINER_MAX = 1200;
-const SECTION_GAP = 120;  // px between major sections
-
-/**
- * All content is wrapped in SectionContainer which provides:
- *   - max-width 1200px centered
- *   - horizontal padding that guarantees 20px+ margin on mobile
- */
-function SectionContainer({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div
-      className={`w-full mx-auto px-6 sm:px-8 lg:px-10 ${className}`}
-      style={{ maxWidth: CONTAINER_MAX }}
-    >
-      {children}
-    </div>
-  );
-}
-
 /* ─── reusable section heading ─── */
 function SectionHeading({ title, highlight, subtitle, highlightColor = 'text-amber-500' }: {
   title: string;
@@ -79,7 +59,7 @@ function SectionHeading({ title, highlight, subtitle, highlightColor = 'text-amb
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}
-        className="text-[clamp(2rem,5vw,3rem)] font-heading font-black mb-4 tracking-tight leading-[1.1]"
+        className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight"
       >
         {title} <span className={highlightColor}>{highlight}</span>
       </motion.h2>
@@ -88,7 +68,7 @@ function SectionHeading({ title, highlight, subtitle, highlightColor = 'text-amb
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}
-        className="text-white/50 text-base md:text-lg max-w-xl mx-auto leading-relaxed"
+        className="text-zinc-400 text-center mb-16 max-w-xl mx-auto text-base leading-relaxed"
       >
         {subtitle}
       </motion.p>
@@ -104,7 +84,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050505] overflow-x-hidden text-white">
+    <div className="min-h-screen flex flex-col bg-zinc-950 overflow-x-hidden text-zinc-100">
       {/* ══════════════════════ DECORATIVE BG ══════════════════════ */}
       <div className="fixed top-0 inset-x-0 h-[800px] overflow-hidden -z-10 pointer-events-none will-change-transform">
         <div className="absolute -top-[20%] left-[10%] w-[60%] h-[120%] rounded-full bg-amber-500/[0.04] blur-[150px]" />
@@ -112,244 +92,168 @@ export default function Home() {
       </div>
 
       {/* ══════════════════════ NAVBAR ══════════════════════ */}
-      <motion.nav
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="sticky top-0 z-[100] border-b border-white/[0.06] bg-[#050505]/80 backdrop-blur-2xl will-change-transform"
-        style={{ padding: '14px 0' }}
-      >
-        <SectionContainer className="flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <Star size={22} fill="currentColor" className="text-amber-500 drop-shadow-[0_0_10px_rgba(212,168,67,0.35)] group-hover:scale-110 transition-transform" />
-            <span className="font-heading font-black text-lg tracking-tight">
+      <nav className="fixed top-0 z-50 w-full border-b border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo: Larger, clickable area */}
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white group">
+              <Star size={24} fill="currentColor" className="text-amber-500 drop-shadow-[0_0_10px_rgba(212,168,67,0.35)] group-hover:scale-110 transition-transform" />
               DevAgent<span className="text-amber-500">24</span>
-            </span>
-          </Link>
-
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
-            {[
-              { href: '#how-it-works', label: 'How it Works' },
-              { href: '#features', label: 'Features' },
-              { href: '#pricing', label: 'Pricing' },
-            ].map(link => (
-              <Link key={link.href} href={link.href} className="text-white/45 hover:text-white transition-colors text-[13px] font-semibold tracking-wide uppercase">
-                {link.label}
-              </Link>
-            ))}
-            <div className="w-px h-5 bg-white/10" />
+            </Link>
+            
+            {/* Nav links: Equal spacing, clear hover states */}
+            <div className="hidden md:flex items-center gap-8">
+              <Link href="#how-it-works" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">How It Works</Link>
+              <Link href="#features" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Features</Link>
+              <Link href="#pricing" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">Pricing</Link>
+            </div>
+            
+            {/* CTA: Secondary style, not competing with hero */}
             <form action={signInWithGithub}>
-              <button
-                type="submit"
-                className="group relative overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-500 text-black font-bold text-sm hover:bg-amber-400 transition-all duration-300 active:scale-95 shadow-[0_0_20px_-5px_rgba(212,168,67,0.4)] hover:shadow-[0_0_30px_-5px_rgba(212,168,67,0.5)]"
-              >
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-                <Github size={16} className="relative z-10" />
-                <span className="relative z-10">Sign In</span>
+              <button type="submit" className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors">
+                Sign In
               </button>
             </form>
           </div>
+        </div>
+      </nav>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden p-2 text-white/70 hover:text-white transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </SectionContainer>
-
-        {/* Mobile Dropdown */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-white/5 bg-[#0a0a0a]/95 backdrop-blur-xl px-6"
-            style={{ padding: '16px 0' }}
-          >
-            <div className="flex flex-col gap-3">
-              {[
-                { href: '#how-it-works', label: 'How it Works' },
-                { href: '#features', label: 'Features' },
-                { href: '#pricing', label: 'Pricing' },
-              ].map(link => (
-                <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className="text-white/60 hover:text-white py-2.5 text-sm font-semibold transition-colors">
-                  {link.label}
-                </Link>
-              ))}
-              <form action={signInWithGithub}>
-                <button type="submit" className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-bold text-sm hover:bg-amber-400 transition-all mt-1">
-                  <Github size={16} /> Sign In with GitHub
-                </button>
-              </form>
-            </div>
-          </motion.div>
-        )}
-      </motion.nav>
-
-      <main className="flex-1">
+      <main className="flex-1 pt-16">
         {/* ══════════════════════ HERO ══════════════════════ */}
-        <section
-          ref={heroRef}
-          className="relative flex flex-col items-center text-center justify-center px-6 sm:px-8"
-          style={{ minHeight: '90vh', paddingTop: 'clamp(60px, 10vh, 120px)', paddingBottom: '60px' }}
-        >
-          {/* Animated Stars Background */}
-          <motion.div style={{ y: yBg }} className="absolute inset-0 pointer-events-none -z-10">
-            {[...Array(60)].map((_, i) => (
+        <section ref={heroRef} className="relative pt-32 pb-20 lg:pt-40 lg:pb-24 overflow-hidden">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              
+              {/* Left: Text content */}
+              <div className="max-w-xl text-center lg:text-left mx-auto lg:mx-0">
+                {/* Badge */}
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  style={{ opacity: opacityHero as unknown as number }}
+                  className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 mb-6"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">DevAgent 2.0 is Live</span>
+                </motion.div>
+                
+                {/* Headline: Proper hierarchy */}
+                <motion.h1
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ opacity: opacityHero as unknown as number }}
+                  className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1]"
+                >
+                  Master Code.<br />
+                  <span className="text-amber-500">Ace Interviews.</span><br />
+                  Earn Proof.
+                </motion.h1>
+                
+                {/* Subhead: Constrained width for readability */}
+                <motion.p
+                  initial={{ y: 25, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ opacity: opacityHero as unknown as number }}
+                  className="mt-6 text-lg text-zinc-400 leading-relaxed max-w-lg mx-auto lg:mx-0"
+                >
+                  The premium Agentic AI platform for elite software engineers. Practice TDD, conduct lifelike voice mock interviews, and mint verifiable real-world blockchain certificates.
+                </motion.p>
+                
+                {/* CTAs: Clear hierarchy */}
+                <motion.div
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+                >
+                  <form action={signInWithGithub} className="w-full sm:w-auto">
+                    <button type="submit" className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-amber-400 transition-colors gap-2 group relative overflow-hidden">
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></span>
+                      <Github size={18} className="relative z-10" />
+                      <span className="relative z-10">Start Free Trial</span>
+                    </button>
+                  </form>
+                  <button className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-zinc-700 bg-transparent px-6 py-3 text-sm font-semibold text-white hover:border-zinc-500 transition-colors gap-2">
+                    <PlayCircle size={18} />
+                    Watch Demo
+                  </button>
+                </motion.div>
+              </div>
+
+              {/* Right: Code Window */}
               <motion.div
-                key={i}
-                className="absolute bg-amber-400 rounded-full will-change-transform"
-                style={{
-                  top: `${(i * 37) % 100}%`,
-                  left: `${(i * 13) % 100}%`,
-                  width: ((i * 17) % 2) + 1,
-                  height: ((i * 17) % 2) + 1,
-                }}
-                animate={{ opacity: [0.1, 0.6, 0.1] }}
-                transition={{ duration: ((i * 19) % 3) + 3, repeat: Infinity, ease: "easeInOut", delay: (i * 23) % 3 }}
-              />
-            ))}
-          </motion.div>
-
-          {/* Intro Badge */}
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            style={{ opacity: opacityHero as unknown as number }}
-            className="flex items-center gap-2.5 px-4 py-2 rounded-full mb-10 border border-amber-500/20 bg-amber-500/[0.06] backdrop-blur-md"
-          >
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
-            </span>
-            <span className="text-amber-400 text-xs font-bold tracking-widest uppercase">DevAgent 2.0 is Live</span>
-          </motion.div>
-
-          {/* ── Main Headline ── */}
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            style={{ opacity: opacityHero as unknown as number }}
-            className="font-black tracking-tighter max-w-[900px] mb-8 text-balance leading-[1.05]"
-          >
-            <span className="block text-[clamp(2.5rem,7.5vw,5rem)] bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/75">
-              Master Code.
-            </span>
-            <span className="block text-[clamp(2.5rem,7.5vw,5rem)] bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 py-1">
-              Ace Interviews.
-            </span>
-            <span className="block text-[clamp(2.5rem,7.5vw,5rem)] bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/75">
-              Earn Proof.
-            </span>
-          </motion.h1>
-
-          {/* ── Subtitle (max 650px, improved contrast) ── */}
-          <motion.p
-            initial={{ y: 25, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            style={{ opacity: opacityHero as unknown as number }}
-            className="text-[clamp(0.95rem,1.6vw,1.2rem)] text-white/60 max-w-[650px] mb-12 leading-[1.7] px-4"
-          >
-            The premium Agentic AI platform for elite software engineers. Practice TDD, conduct lifelike voice mock interviews, and mint verifiable real-world blockchain certificates.
-          </motion.p>
-
-          {/* ── CTA Buttons (consistent height/spacing) ── */}
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-6 z-10"
-          >
-            <form action={signInWithGithub} className="w-full sm:w-auto">
-              <button
-                type="submit"
-                className="w-full sm:w-auto h-14 flex items-center justify-center gap-2.5 text-[15px] font-black tracking-tight px-8 rounded-full bg-amber-500 text-black hover:bg-amber-400 shadow-[0_0_40px_-10px_rgba(212,168,67,0.5)] hover:shadow-[0_0_60px_-10px_rgba(212,168,67,0.6)] transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.97] group relative overflow-hidden"
+                initial={{ y: 60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="relative hidden lg:block w-full max-w-xl shadow-2xl shadow-amber-500/10 ml-auto"
               >
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full group-hover:animate-[shimmer_1s_infinite]" />
-                <Github size={18} className="relative z-10" />
-                <span className="relative z-10">Start Free Trial</span>
-              </button>
-            </form>
-            <button className="w-full sm:w-auto h-14 flex items-center justify-center gap-2.5 text-[15px] font-bold px-8 rounded-full border border-white/10 hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.97] text-white/80 hover:text-white">
-              <PlayCircle size={18} />
-              Watch Demo
-            </button>
-          </motion.div>
+                <div className="rounded-2xl border border-white/[0.08] bg-[#0d1117] overflow-hidden relative break-all sm:break-normal overflow-x-auto min-h-[350px]">
+                  {/* Window Header */}
+                  <div className="h-10 border-b border-white/[0.06] bg-white/[0.03] flex items-center px-4 gap-2 sticky top-0 z-10">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                    <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                    <div className="mx-auto text-[11px] text-white/25 font-mono tracking-widest">agent.ts</div>
+                  </div>
+                  {/* Editor Content */}
+                  <div className="p-6 text-left font-mono text-sm leading-[1.8]">
+                    <div className="opacity-90">
+                      <span className="text-[#ff7b72]">import</span> <span className="text-[#e6edf3]">{'{'}</span> <span className="text-[#e2c08d]">GroqVoiceAgent</span> <span className="text-[#e6edf3]">{'}'}</span> <span className="text-[#ff7b72]">from</span> <span className="text-[#a5d6ff]">"'@devagent/ai'"</span>;<br/><br/>
+                      <span className="text-[#ff7b72]">export</span> <span className="text-[#ff7b72]">async</span> <span className="text-[#ff7b72]">function</span> <span className="text-[#d2a8ff]">startMockInterview</span><span className="text-[#e6edf3]">(</span><span className="text-[#ffa657]">candidateId</span><span className="text-[#ff7b72]">:</span> <span className="text-[#79c0ff]">string</span><span className="text-[#e6edf3]">) {'{'}</span><br/>
+                      <span className="pl-4 text-[#8b949e]">{"// Init ultra-low latency Voice AI"}</span><br/>
+                      <span className="pl-4 text-[#ff7b72]">const</span> <span className="text-[#e6edf3]">interviewer</span> <span className="text-[#ff7b72]">=</span> <span className="text-[#ff7b72]">new</span> <span className="text-[#e2c08d]">GroqVoiceAgent</span><span className="text-[#e6edf3]">({'{'}</span><br/>
+                      <span className="pl-8 text-[#e6edf3]">model: </span><span className="text-[#a5d6ff]">"'voice-agent-v2'"</span><span className="text-[#e6edf3]">,</span><br/>
+                      <span className="pl-8 text-[#e6edf3]">persona: </span><span className="text-[#a5d6ff]">"'Lead Staff Eng'"</span><span className="text-[#e6edf3]">,</span><br/>
+                      <span className="pl-8 text-[#e6edf3]">strictness: </span><span className="text-[#79c0ff]">0.9</span><br/>
+                      <span className="pl-4 text-[#e6edf3]">{'}'});</span><br/><br/>
+                      <span className="pl-4 text-[#ff7b72]">await</span> <span className="text-[#e6edf3]">interviewer.</span><span className="text-[#d2a8ff]">connectWebRTC</span><span className="text-[#e6edf3]">();</span><br/>
+                      <span className="pl-4 text-[#ff7b72]">return</span> <span className="text-[#e6edf3]">interviewer.</span><span className="text-[#d2a8ff]">beginAssessment</span><span className="text-[#e6edf3]">();</span><br/>
+                      <span className="text-[#e6edf3]">{'}'}</span>
+                    </div>
+                  </div>
 
-          {/* ── Floating Code Editor (positioned below CTA, no overlap) ── */}
-          <motion.div
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 md:mt-20 w-full max-w-[880px] relative hidden md:block z-0"
-          >
-            <div className="rounded-2xl border border-white/[0.08] bg-[#0d1117] shadow-2xl overflow-hidden relative">
-              {/* Window Header */}
-              <div className="h-10 border-b border-white/[0.06] bg-white/[0.03] flex items-center px-4 gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
-                <div className="mx-auto text-[11px] text-white/25 font-mono tracking-widest">agent.ts</div>
-              </div>
-              {/* Editor Content */}
-              <div className="p-6 md:p-8 text-left font-mono text-xs md:text-sm leading-[1.8] overflow-hidden relative">
-                <div className="opacity-90">
-                  <span className="text-[#ff7b72]">import</span> <span className="text-[#e6edf3]">{'{'}</span> <span className="text-[#e2c08d]">GroqVoiceAgent</span> <span className="text-[#e6edf3]">{'}'}</span> <span className="text-[#ff7b72]">from</span> <span className="text-[#a5d6ff]">{"'@devagent/ai'"}</span>;<br/><br/>
-                  <span className="text-[#ff7b72]">export</span> <span className="text-[#ff7b72]">async</span> <span className="text-[#ff7b72]">function</span> <span className="text-[#d2a8ff]">startMockInterview</span><span className="text-[#e6edf3]">(</span><span className="text-[#ffa657]">candidateId</span><span className="text-[#ff7b72]">:</span> <span className="text-[#79c0ff]">string</span><span className="text-[#e6edf3]">) {'{'}</span><br/>
-                  <span className="pl-6 text-[#8b949e]">{"// Initialize ultra-low latency Voice AI pipeline"}</span><br/>
-                  <span className="pl-6 text-[#ff7b72]">const</span> <span className="text-[#e6edf3]">interviewer</span> <span className="text-[#ff7b72]">=</span> <span className="text-[#ff7b72]">new</span> <span className="text-[#e2c08d]">GroqVoiceAgent</span><span className="text-[#e6edf3]">({'{'}</span><br/>
-                  <span className="pl-12 text-[#e6edf3]">model: </span><span className="text-[#a5d6ff]">{"'voice-agent-v2'"}</span><span className="text-[#e6edf3]">,</span><br/>
-                  <span className="pl-12 text-[#e6edf3]">persona: </span><span className="text-[#a5d6ff]">{"'Lead Staff Engineer'"}</span><span className="text-[#e6edf3]">,</span><br/>
-                  <span className="pl-12 text-[#e6edf3]">strictness: </span><span className="text-[#79c0ff]">0.9</span><br/>
-                  <span className="pl-6 text-[#e6edf3]">{'}'});</span><br/><br/>
-                  <span className="pl-6 text-[#ff7b72]">await</span> <span className="text-[#e6edf3]">interviewer.</span><span className="text-[#d2a8ff]">connectWebRTC</span><span className="text-[#e6edf3]">();</span><br/>
-                  <span className="pl-6 text-[#ff7b72]">return</span> <span className="text-[#e6edf3]">interviewer.</span><span className="text-[#d2a8ff]">beginAssessment</span><span className="text-[#e6edf3]">();</span><br/>
-                  <span className="text-[#e6edf3]">{'}'}</span>
+                  {/* Floating badge: anchored to the edge */}
+                  <motion.div
+                    animate={{ y: [-3, 3, -3] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -right-4 top-16 md:-right-6 md:top-20 bg-black/80 backdrop-blur-xl border border-white/15 px-3 py-2 rounded-xl shadow-xl flex items-center gap-2 z-20"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-500"><Zap size={12} /></div>
+                    <div>
+                      <div className="text-white font-bold text-[10px] leading-tight">Groq Inference</div>
+                      <div className="text-amber-400 font-mono text-[8px]">Latency: 14ms</div>
+                    </div>
+                  </motion.div>
+
+                  {/* Floating badge: anchored to the edge */}
+                  <motion.div
+                    animate={{ y: [3, -3, 3] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -right-2 bottom-12 border border-white/15 md:-right-4 md:bottom-16 bg-black/80 backdrop-blur-xl px-3 py-2 rounded-xl shadow-xl flex items-center gap-2 z-20"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center text-green-400"><CheckCircle2 size={12} /></div>
+                    <div>
+                      <div className="text-white font-bold text-[10px] leading-tight">Tests Passed</div>
+                      <div className="text-white/40 font-mono text-[8px]">5/5 Specs</div>
+                    </div>
+                  </motion.div>
+
                 </div>
+              </motion.div>
 
-                {/* Floating badge: top-right anchored */}
-                <motion.div
-                  animate={{ y: [-3, 3, -3] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute top-4 right-4 md:top-6 md:right-6 bg-black/60 backdrop-blur-xl border border-white/15 px-3.5 py-2.5 rounded-xl shadow-xl flex items-center gap-2.5"
-                >
-                  <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-500"><Zap size={15} /></div>
-                  <div>
-                    <div className="text-white font-bold text-[11px] leading-tight">Groq Inference</div>
-                    <div className="text-amber-400 font-mono text-[9px]">Latency: 14ms</div>
-                  </div>
-                </motion.div>
-
-                {/* Floating badge: bottom-right anchored */}
-                <motion.div
-                  animate={{ y: [3, -3, 3] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute bottom-4 right-4 md:bottom-6 md:right-6 bg-black/60 backdrop-blur-xl border border-white/15 px-3.5 py-2.5 rounded-xl shadow-xl flex items-center gap-2.5"
-                >
-                  <div className="w-8 h-8 rounded-full bg-green-500/15 flex items-center justify-center text-green-400"><CheckCircle2 size={15} /></div>
-                  <div>
-                    <div className="text-white font-bold text-[11px] leading-tight">Tests Passed</div>
-                    <div className="text-white/40 font-mono text-[9px]">5/5 Specs • Judge0</div>
-                  </div>
-                </motion.div>
-              </div>
             </div>
-            {/* Glow under editor */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-amber-500/10 blur-[100px] rounded-full -z-10 pointer-events-none" />
-          </motion.div>
+          </div>
         </section>
 
         {/* ══════════════════════ HOW IT WORKS ══════════════════════ */}
-        <section id="how-it-works" style={{ paddingTop: SECTION_GAP, paddingBottom: SECTION_GAP }}>
-          <SectionContainer>
+        <section id="how-it-works" className="w-full py-20 lg:py-24">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <SectionHeading
               title="The Path to"
               highlight="10x."
@@ -361,30 +265,30 @@ export default function Home() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-100px' }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
               {/* Step 1: Code & Execute */}
-              <motion.div variants={itemVariants} className="group relative bg-[#0a0a0a] border border-white/[0.07] rounded-2xl p-7 md:p-8 hover:bg-[#0e0e0e] transition-all duration-500 overflow-hidden hover:border-amber-500/20 flex flex-col">
+              <motion.div variants={itemVariants} className="group relative bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-colors flex flex-col h-full">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/[0.06] rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/[0.12] transition-colors pointer-events-none" />
                 <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-5">
                   <Terminal size={22} />
                 </div>
-                <h3 className="text-lg font-bold mb-2.5 font-heading tracking-tight">1. Code & Execute</h3>
-                <p className="text-white/45 leading-relaxed mb-5 text-[13px] flex-1">Tackle FAANG-level algorithms in our multi-language IDE. Judge0 integration provides instant execution for Python, Rust, Go, C++, and more.</p>
-                <div className="bg-black/50 border border-white/[0.05] rounded-lg p-3 font-mono text-xs text-white/50 space-y-1">
+                <h3 className="text-lg font-semibold text-white mb-2">1. Code & Execute</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed flex-1 mb-5">Tackle FAANG-level algorithms in our multi-language IDE. Judge0 integration provides instant execution for Python, Rust, Go, C++, and more.</p>
+                <div className="bg-black/50 border border-white/[0.05] rounded-lg p-3 font-mono text-xs text-white/50 space-y-1 break-words">
                   <div><span className="text-green-400">✓</span> Test 1: Edge case</div>
                   <div><span className="text-green-400">✓</span> Test 2: O(n) runtime</div>
                 </div>
               </motion.div>
 
               {/* Step 2: Ace the Interview */}
-              <motion.div variants={itemVariants} className="group relative bg-[#0a0a0a] border border-white/[0.07] rounded-2xl p-7 md:p-8 hover:bg-[#0e0e0e] transition-all duration-500 overflow-hidden hover:border-blue-500/20 flex flex-col">
+              <motion.div variants={itemVariants} className="group relative bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-colors flex flex-col h-full">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/[0.06] rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/[0.12] transition-colors pointer-events-none" />
                 <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 mb-5">
                   <BrainCircuit size={22} />
                 </div>
-                <h3 className="text-lg font-bold mb-2.5 font-heading tracking-tight">2. Ace the Interview</h3>
-                <p className="text-white/45 leading-relaxed mb-5 text-[13px] flex-1">Defend your code live via our ultra-low latency AI voice agent. Experience the pressure of a real technical round.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">2. Ace the Interview</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed flex-1 mb-5">Defend your code live via our ultra-low latency AI voice agent. Experience the pressure of a real technical round.</p>
                 <div className="h-12 flex items-center justify-center gap-[3px] opacity-25 group-hover:opacity-80 transition-opacity duration-500">
                   {[...Array(12)].map((_, i) => (
                     <motion.div key={i} className="w-[3px] bg-blue-500 rounded-full will-change-transform" animate={{ height: [6, ((i * 47) % 24) + 8, 6] }} transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.1, ease: "easeInOut" }} />
@@ -393,15 +297,15 @@ export default function Home() {
               </motion.div>
 
               {/* Step 3: Earn Proof */}
-              <motion.div variants={itemVariants} className="group relative bg-[#0a0a0a] border border-white/[0.07] rounded-2xl p-7 md:p-8 hover:bg-[#0e0e0e] transition-all duration-500 overflow-hidden hover:border-purple-500/20 flex flex-col sm:col-span-2 lg:col-span-1">
+              <motion.div variants={itemVariants} className="group relative bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-colors flex flex-col h-full sm:col-span-2 lg:col-span-1">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/[0.06] rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 group-hover:bg-purple-500/[0.12] transition-colors pointer-events-none" />
-                <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 mb-5">
+                <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-5">
                   <Shield size={22} />
                 </div>
-                <h3 className="text-lg font-bold mb-2.5 font-heading tracking-tight">3. Earn Proof</h3>
-                <p className="text-white/45 leading-relaxed mb-5 text-[13px] flex-1">Pass both coding and interview phases to mint a verifiable Soulbound NFT Certificate on the Solana blockchain automatically.</p>
-                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-3 flex items-center gap-3 group-hover:scale-[1.01] transition-transform">
-                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center shadow-lg shrink-0"><Award size={16} className="text-white"/></div>
+                <h3 className="text-lg font-semibold text-white mb-2">3. Earn Proof</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed flex-1 mb-5">Pass both coding and interview phases to mint a verifiable Soulbound NFT Certificate on the Solana blockchain automatically.</p>
+                <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center gap-3 group-hover:scale-[1.01] transition-transform">
+                  <div className="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center shadow-lg shrink-0"><Award size={16} className="text-white"/></div>
                   <div>
                     <div className="font-bold text-xs text-white">Verified Skill NFT</div>
                     <div className="text-[10px] text-white/35 font-mono">Tx: gz4fr...</div>
@@ -409,23 +313,23 @@ export default function Home() {
                 </div>
               </motion.div>
             </motion.div>
-          </SectionContainer>
+          </div>
         </section>
 
         {/* ══════════════════════ FEATURE: AI INTERVIEW ══════════════════════ */}
-        <section id="features" className="relative overflow-hidden" style={{ paddingTop: SECTION_GAP, paddingBottom: SECTION_GAP, background: 'linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 100%)' }}>
+        <section id="features" className="w-full relative overflow-hidden py-20 lg:py-24">
           <div className="absolute top-1/2 left-0 w-1/3 h-[400px] bg-blue-600/[0.06] blur-[120px] -translate-y-1/2 rounded-full pointer-events-none" />
-          <SectionContainer>
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-100px' }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center"
             >
               {/* Chat Mockup */}
               <motion.div variants={itemVariants} className="relative group order-2 lg:order-1">
-                <div className="border border-white/[0.07] bg-[#080808] rounded-2xl p-5 md:p-7 shadow-2xl relative z-10 group-hover:border-blue-500/20 transition-all duration-500">
+                <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 shadow-xl relative z-10">
                   {/* Header */}
                   <div className="flex justify-between items-center mb-5 pb-4 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5">
@@ -439,12 +343,12 @@ export default function Home() {
                   {/* Messages */}
                   <div className="space-y-3.5">
                     {/* AI message */}
-                    <div className="bg-white/[0.04] rounded-2xl rounded-tl-md p-4 text-white/55 border border-white/[0.04] leading-relaxed text-[13px] max-w-[90%]">
+                    <div className="bg-zinc-800 text-zinc-300 text-sm p-4 rounded-2xl rounded-tl-sm max-w-[85%]">
                       &quot;I noticed you used a nested loop here resulting in O(n²) time complexity. Can you optimize this using a different data structure?&quot;
                     </div>
                     {/* User message */}
                     <div className="flex justify-end">
-                      <div className="bg-blue-600 rounded-2xl rounded-br-md p-4 text-white shadow-lg shadow-blue-900/20 max-w-[85%] text-[13px] leading-relaxed font-medium">
+                      <div className="bg-blue-600 text-white text-sm p-4 rounded-2xl rounded-br-sm max-w-[85%] ml-auto break-words">
                         &quot;Yes, we can use a Hash Map to store complements while iterating...&quot;
                       </div>
                     </div>
@@ -456,10 +360,10 @@ export default function Home() {
 
               {/* Text */}
               <motion.div variants={itemVariants} className="text-center lg:text-left order-1 lg:order-2">
-                <h2 className="text-[clamp(1.75rem,4vw,2.6rem)] font-heading font-black mb-5 leading-[1.15]">
-                  Conversational AI<br/><span className="text-blue-500">that bites back.</span>
+                <h2 className="text-3xl sm:text-4xl font-bold mb-6">
+                  Conversational AI<br/><span className="text-blue-400">that bites back.</span>
                 </h2>
-                <p className="text-[15px] md:text-base text-white/50 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                <p className="text-zinc-400 text-lg mb-8 max-w-md mx-auto lg:mx-0">
                   It&apos;s not just a chat. It&apos;s a real-time voice assessment powered by high-speed AI inference. It challenges your design choices exactly like a Staff Engineer would.
                 </p>
                 <ul className="space-y-3.5 inline-block text-left">
@@ -468,33 +372,33 @@ export default function Home() {
                     'Context-aware feedback on your code',
                     'Adaptive difficulty based on responses',
                   ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2.5 text-sm text-white/65">
-                      <CheckCircle2 className="text-blue-500 shrink-0" size={17}/> {item}
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-zinc-400">
+                      <CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={17}/> {item}
                     </li>
                   ))}
                 </ul>
               </motion.div>
             </motion.div>
-          </SectionContainer>
+          </div>
         </section>
 
         {/* ══════════════════════ FEATURE: BLOCKCHAIN CERTS ══════════════════════ */}
-        <section className="relative overflow-hidden" style={{ paddingTop: SECTION_GAP, paddingBottom: SECTION_GAP }}>
-          <div className="absolute top-1/2 right-0 w-1/3 h-[400px] bg-purple-600/[0.06] blur-[120px] -translate-y-1/2 rounded-full pointer-events-none" />
-          <SectionContainer>
+        <section className="w-full relative overflow-hidden py-20 lg:py-24">
+          <div className="absolute top-1/2 right-0 w-1/3 h-[400px] bg-amber-600/[0.06] blur-[120px] -translate-y-1/2 rounded-full pointer-events-none" />
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-100px' }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center"
+              className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16 items-center"
             >
               {/* Text */}
-              <motion.div variants={itemVariants} className="text-center lg:text-left">
-                <h2 className="text-[clamp(1.75rem,4vw,2.6rem)] font-heading font-black mb-5 leading-[1.15]">
-                  Stop telling them.<br/><span className="text-purple-500">Start proving it.</span>
+              <motion.div variants={itemVariants} className="lg:col-span-3 text-center lg:text-left">
+                <h2 className="text-3xl sm:text-4xl font-bold mb-6">
+                  Stop telling them.<br/><span className="text-amber-500">Start proving it.</span>
                 </h2>
-                <p className="text-[15px] md:text-base text-white/50 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                <p className="text-zinc-400 text-lg mb-8 max-w-md mx-auto lg:mx-0">
                   Resumes can be faked. On-chain execution cannot. Upon passing our challenges, a smart contract automatically mints a Soulbound NFT to your address.
                 </p>
                 <ul className="space-y-3.5 inline-block text-left">
@@ -503,39 +407,40 @@ export default function Home() {
                     'Automatic Wallet creation via PDAs',
                     'Immutable public verification link',
                   ].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2.5 text-sm text-white/65">
-                      <CheckCircle2 className="text-purple-500 shrink-0" size={17}/> {item}
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-zinc-400">
+                      <CheckCircle2 className="text-amber-500 shrink-0 mt-0.5" size={17}/> {item}
                     </li>
                   ))}
                 </ul>
               </motion.div>
 
               {/* Certificate Mockup */}
-              <motion.div variants={itemVariants} className="relative group">
-                <div className="border border-purple-500/20 bg-gradient-to-br from-[#16101f] to-[#0b0712] rounded-2xl p-6 md:p-8 shadow-[0_0_50px_-15px_rgba(168,85,247,0.25)] relative z-10 transform lg:rotate-1 hover:rotate-0 transition-all duration-500">
-                  <div className="absolute top-0 right-0 p-4 opacity-30"><Shield size={70} className="text-purple-500 blur-xl"/></div>
-                  <div className="text-purple-400 font-bold tracking-widest uppercase text-[9px] mb-2 opacity-70">Verified Skill Credential</div>
+              <motion.div variants={itemVariants} className="lg:col-span-2 relative group w-full max-w-sm mx-auto">
+                <div className="bg-gradient-to-br from-amber-900/20 to-zinc-900 border border-amber-500/20 rounded-xl p-6 z-10 relative">
+                  <div className="absolute top-0 right-0 p-4 opacity-30"><Shield size={70} className="text-amber-500 blur-xl"/></div>
+                  <div className="text-amber-400 font-bold tracking-widest uppercase text-[9px] mb-2 opacity-70">Verified Skill Credential</div>
                   <h3 className="text-xl md:text-2xl font-heading font-black mb-6 text-white tracking-tight">Advanced Data Structures</h3>
                   <div className="grid grid-cols-2 gap-5 mb-6">
                     <div><div className="text-white/30 text-[9px] uppercase mb-1 font-bold tracking-wider">Issue Date</div><div className="font-mono text-xs">Oct 24, 2024</div></div>
-                    <div><div className="text-white/30 text-[9px] uppercase mb-1 font-bold tracking-wider">Network</div><div className="font-mono text-xs text-purple-300">Solana Mainnet</div></div>
+                    <div><div className="text-white/30 text-[9px] uppercase mb-1 font-bold tracking-wider">Network</div><div className="font-mono text-xs text-amber-300">Solana Mainnet</div></div>
                   </div>
-                  <div className="border-t border-purple-500/10 pt-5 flex justify-between items-center">
+                  <div className="border-t border-amber-500/10 pt-5 flex justify-between items-center">
                     <span className="font-mono text-[10px] text-white/35 bg-black/30 px-2.5 py-1 rounded-md border border-white/[0.04]">Token ID: #8492</span>
-                    <div className="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center shadow-lg"><Award size={17} className="text-white" /></div>
+                    <div className="w-9 h-9 rounded-full bg-amber-600 flex items-center justify-center shadow-lg"><Award size={17} className="text-white" /></div>
                   </div>
                 </div>
                 {/* Hover glow */}
-                <div className="absolute -inset-px bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500 -z-10" />
+                <div className="absolute -inset-px bg-gradient-to-r from-amber-500/10 to-pink-500/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500 -z-10" />
               </motion.div>
             </motion.div>
-          </SectionContainer>
+          </div>
         </section>
 
         {/* ══════════════════════ PRICING ══════════════════════ */}
-        <section id="pricing" className="relative border-y border-white/[0.05]" style={{ paddingTop: SECTION_GAP, paddingBottom: SECTION_GAP, background: '#050505' }}>
+        {/* ══════════════════════ PRICING ══════════════════════ */}
+        <section id="pricing" className="w-full py-20 lg:py-24 relative border-y border-zinc-800 bg-zinc-950">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-          <SectionContainer className="relative z-10">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
             <SectionHeading
               title="Simple, transparent"
               highlight="Pricing"
@@ -547,13 +452,13 @@ export default function Home() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: '-100px' }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch"
+              className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch"
             >
               {/* Free Plan */}
-              <motion.div variants={itemVariants} className="bg-[#0a0a0a] border border-white/[0.07] rounded-2xl p-6 md:p-7 hover:border-white/[0.12] transition-all duration-300 flex flex-col">
+              <motion.div variants={itemVariants} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 lg:p-8 hover:border-zinc-700 transition-colors flex flex-col h-full">
                 <div className="text-base font-bold mb-2 text-white/60">Community</div>
                 <div className="flex items-baseline gap-1.5 mb-6">
-                  <span className="text-4xl font-black font-heading">$0</span>
+                  <span className="text-4xl font-bold text-white/70">$0</span>
                   <span className="text-white/30 text-sm">/forever</span>
                 </div>
                 <ul className="space-y-3 mb-8 flex-1">
@@ -564,16 +469,16 @@ export default function Home() {
                   ))}
                 </ul>
                 <form action={signInWithGithub} className="w-full mt-auto">
-                  <button type="submit" className="w-full py-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] font-bold text-sm transition-all duration-300 active:scale-[0.98]">Get Started</button>
+                  <button type="submit" className="w-full h-12 flex items-center justify-center rounded-lg border border-zinc-700 hover:border-zinc-500 bg-transparent text-zinc-100 font-semibold transition-all duration-200">Get Started</button>
                 </form>
               </motion.div>
 
               {/* Pro Plan */}
-              <motion.div variants={itemVariants} className="bg-gradient-to-b from-[#181200] to-[#0d0800] border border-amber-500/30 rounded-2xl p-6 md:p-7 shadow-[0_0_40px_-15px_rgba(212,168,67,0.2)] relative flex flex-col lg:-translate-y-2">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-xl z-10">Most Popular</div>
+              <motion.div variants={itemVariants} className="bg-zinc-900 border border-amber-500/50 rounded-2xl p-6 lg:p-8 relative flex flex-col h-full">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-500 text-zinc-950 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">Most Popular</div>
                 <div className="text-base font-bold mb-2 text-amber-500 mt-2">DevAgent Pro</div>
                 <div className="flex items-baseline gap-1.5 mb-6">
-                  <span className="text-4xl font-black font-heading text-white">$29</span>
+                  <span className="text-4xl font-bold text-white">$29</span>
                   <span className="text-white/30 text-sm">/month</span>
                 </div>
                 <ul className="space-y-3 mb-8 flex-1">
@@ -584,15 +489,15 @@ export default function Home() {
                   ))}
                 </ul>
                 <form action={signInWithGithub} className="w-full mt-auto">
-                  <button type="submit" className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm transition-all duration-300 shadow-[0_0_20px_rgba(212,168,67,0.25)] active:scale-[0.98]">Upgrade to Pro</button>
+                  <button type="submit" className="w-full h-12 flex items-center justify-center rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold transition-all duration-200">Upgrade to Pro</button>
                 </form>
               </motion.div>
 
               {/* Enterprise Plan */}
-              <motion.div variants={itemVariants} className="bg-[#0a0a0a] border border-white/[0.07] rounded-2xl p-6 md:p-7 hover:border-white/[0.12] transition-all duration-300 flex flex-col">
+              <motion.div variants={itemVariants} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 lg:p-8 hover:border-zinc-700 transition-colors flex flex-col h-full">
                 <div className="text-base font-bold mb-2 text-white/60">Enterprise</div>
                 <div className="flex items-baseline gap-1.5 mb-6">
-                  <span className="text-4xl font-black font-heading">Custom</span>
+                  <span className="text-4xl font-bold">Custom</span>
                 </div>
                 <ul className="space-y-3 mb-8 flex-1">
                   {['SSO + SAML Integration', 'Custom Testing Tracks', 'Dedicated Account Manager', 'White-labeled Certificates', 'On-premise deployments'].map((feat, i) => (
@@ -601,31 +506,31 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <button className="w-full py-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] font-bold text-sm transition-all duration-300 active:scale-[0.98]">Contact Sales</button>
+                <button className="w-full h-12 flex items-center justify-center rounded-lg border border-zinc-700 hover:border-zinc-500 bg-zinc-800 text-zinc-100 font-semibold transition-all duration-200 mt-auto">Contact Sales</button>
               </motion.div>
             </motion.div>
-          </SectionContainer>
+          </div>
         </section>
 
         {/* ══════════════════════ FINAL CTA ══════════════════════ */}
-        <section className="relative overflow-hidden" style={{ paddingTop: SECTION_GAP + 20, paddingBottom: SECTION_GAP + 20 }}>
+        <section className="w-full py-20 lg:py-24 relative overflow-hidden bg-gradient-to-b from-zinc-950 to-zinc-900">
           <div className="absolute inset-0 bg-gradient-to-t from-amber-500/[0.06] to-transparent pointer-events-none" />
-          <SectionContainer className="relative z-10 text-center">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10 text-center">
             <motion.h2
               variants={fadeUpVariant}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="text-[clamp(2rem,6vw,3.5rem)] font-heading font-black mb-6 leading-[1.1] tracking-tight text-balance"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-center mb-6"
             >
-              Stop prepping.<br/> Start <span className="text-amber-500">Executing.</span>
+              Stop prepping.<br/> <span className="text-amber-500">Start Executing.</span>
             </motion.h2>
             <motion.p
               variants={fadeUpVariant}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="text-[15px] md:text-base text-white/45 mb-10 max-w-md mx-auto leading-relaxed text-center"
+              className="mt-6 text-zinc-400 text-lg text-center max-w-2xl mx-auto mb-10 leading-relaxed"
             >
               Join the ranks of elite developers bypassing the resume screen with verifiable, cryptographic proof of their skills.
             </motion.p>
@@ -636,23 +541,23 @@ export default function Home() {
               viewport={{ once: true }}
             >
               <form action={signInWithGithub} className="flex justify-center">
-                <button type="submit" className="h-16 text-base px-10 rounded-full bg-amber-500 text-black font-black shadow-[0_0_50px_-15px_rgba(212,168,67,0.5)] hover:bg-amber-400 hover:shadow-[0_0_70px_-10px_rgba(212,168,67,0.6)] hover:scale-[1.03] transition-all duration-500 flex items-center justify-center gap-2.5 mx-auto active:scale-95 group">
+                <button type="submit" className="h-16 px-10 text-xl rounded-lg bg-amber-500 text-zinc-950 font-bold hover:bg-amber-400 transition-all duration-200 flex items-center justify-center gap-3 mx-auto shadow-xl shadow-amber-500/20 hover:scale-105">
                   <Github size={20} className="group-hover:rotate-12 transition-transform" /> Sign Up with GitHub
                 </button>
               </form>
             </motion.div>
-          </SectionContainer>
+          </div>
         </section>
       </main>
 
       {/* ══════════════════════ FOOTER ══════════════════════ */}
-      <footer className="border-t border-white/[0.05]" style={{ paddingTop: 32, paddingBottom: 32, background: '#080808' }}>
-        <SectionContainer className="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+      <footer className="w-full pt-8 pb-8 border-t border-zinc-800 bg-zinc-950">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
           <Link href="/" className="flex items-center gap-2 text-amber-500 font-heading font-black text-base hover:opacity-80 transition-opacity">
             <Star size={16} fill="currentColor" />
             DevAgent<span className="text-white">24</span>
           </Link>
-          <div className="text-white/25 text-xs order-last md:order-none">
+          <div className="text-zinc-500 text-sm order-last md:order-none">
             © 2026 DevAgent24 Inc. Forged for perfection.
           </div>
           <div className="flex gap-6 text-white/30">
@@ -660,7 +565,7 @@ export default function Home() {
               <Link key={name} href="#" className="hover:text-white/70 transition-colors text-xs font-medium">{name}</Link>
             ))}
           </div>
-        </SectionContainer>
+        </div>
       </footer>
     </div>
   );
