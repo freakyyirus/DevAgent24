@@ -29,6 +29,7 @@ const CERTS = [
 export default function CertificatesPage() {
   const [certs, setCerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const fetchCerts = async () => {
     setLoading(true);
@@ -44,6 +45,7 @@ export default function CertificatesPage() {
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchCerts();
   }, []);
 
@@ -145,7 +147,7 @@ export default function CertificatesPage() {
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: cert.verified ? '#10b981' : '#f59e0b' }}>{cert.score}%</div>
               </div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 4 }}>{cert.track_name}</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Issued: {new Date(cert.issued_at).toLocaleDateString()}</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Issued: {mounted ? new Date(cert.issued_at).toLocaleDateString() : ''}</p>
             </div>
             <div style={{ padding: '20px 24px' }}>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
